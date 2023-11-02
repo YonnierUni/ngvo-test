@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy ASP app to Azure Web App - vgo-test
+name: Build and deploy Angular app to Azure Web App - vgo-test
 
 on:
   push:
@@ -14,25 +11,28 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Setup MSBuild path
-        uses: microsoft/setup-msbuild@v1.0.2
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
 
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1.0.5
+      - name: Install dependencies
+        run: npm install
 
-      - name: Restore NuGet packages
-        run: nuget restore
+      - name: Build Angular app
+        run: npm run build
 
       - name: Publish to folder
         run: msbuild /nologo /verbosity:m /t:Build /t:pipelinePreDeployCopyAllFilesToOneFolder /p:_PackageTempDir="\published\"
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v2
         with:
-          name: ASP-app
-          path: '/published/**'
+          name: angular-app
+          path: dist
 
   deploy:
     runs-on: windows-latest
@@ -43,9 +43,9 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v2
         with:
-          name: ASP-app
+          name: angular-app
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -54,4 +54,4 @@ jobs:
           app-name: 'vgo-test'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_0D03F5FB518149BFA223CED07080D4A2 }}
-          package: .
+          package: ${{ github.workspace }}/angular-app
