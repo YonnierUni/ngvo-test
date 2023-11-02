@@ -25,9 +25,6 @@ jobs:
       - name: Build Angular app
         run: npm run build
 
-      - name: Publish to folder
-        run: msbuild /nologo /verbosity:m /t:Build /t:pipelinePreDeployCopyAllFilesToOneFolder /p:_PackageTempDir="\published\"
-
       - name: Archive build artifacts
         uses: actions/upload-artifact@v2
         with:
